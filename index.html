@@ -25,33 +25,63 @@
 
     body {
       font-family: 'Courier Prime', monospace;
-      background-color: var(--green-dark);
       min-height: 100vh;
       overflow-x: hidden;
       color: var(--ink);
+      position: relative;
     }
 
-    /* Dollar bill background pattern */
+    /* Base bill green */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
-      background-image:
-        repeating-linear-gradient(0deg, transparent, transparent 34px, rgba(0,80,0,0.15) 34px, rgba(0,80,0,0.15) 35px),
-        repeating-linear-gradient(90deg, transparent, transparent 34px, rgba(0,80,0,0.15) 34px, rgba(0,80,0,0.15) 35px),
-        radial-gradient(ellipse at 20% 50%, rgba(60,110,40,0.4) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 50%, rgba(60,110,40,0.4) 0%, transparent 60%),
-        linear-gradient(180deg, #1a3a1a 0%, #2d5a27 40%, #1a3a1a 100%);
-      z-index: -2;
+      background:
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 3px,
+          rgba(0,50,0,0.07) 3px,
+          rgba(0,50,0,0.07) 4px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent 3px,
+          rgba(0,50,0,0.05) 3px,
+          rgba(0,50,0,0.05) 4px
+        ),
+        repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 8px,
+          rgba(0,60,0,0.04) 8px,
+          rgba(0,60,0,0.04) 9px
+        ),
+        linear-gradient(160deg, #1b4020 0%, #2a5e2a 25%, #1e4a22 50%, #2d6030 75%, #1b4020 100%);
+      z-index: -3;
     }
 
+    /* Money texture overlay — bill-like filigree & numbers */
     body::after {
       content: '';
       position: fixed;
       inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='100' y='110' font-size='130' text-anchor='middle' fill='rgba(0,60,0,0.07)' font-family='serif' font-weight='bold'%3E%24%3C/text%3E%3C/svg%3E");
-      background-size: 200px 200px;
+      background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='180'%3E%3Crect width='360' height='180' fill='none'/%3E%3Crect x='8' y='8' width='344' height='164' rx='6' fill='none' stroke='rgba(180,160,80,0.18)' stroke-width='2'/%3E%3Crect x='14' y='14' width='332' height='152' rx='4' fill='none' stroke='rgba(180,160,80,0.1)' stroke-width='1'/%3E%3Ctext x='180' y='105' font-size='88' text-anchor='middle' fill='rgba(0,40,0,0.13)' font-family='Georgia,serif' font-weight='bold'%3E100%3C/text%3E%3Ctext x='36' y='52' font-size='22' fill='rgba(180,160,80,0.22)' font-family='Georgia,serif' font-weight='bold'%3E100%3C/text%3E%3Ctext x='290' y='52' font-size='22' fill='rgba(180,160,80,0.22)' font-family='Georgia,serif' font-weight='bold'%3E100%3C/text%3E%3Ctext x='36' y='158' font-size='22' fill='rgba(180,160,80,0.22)' font-family='Georgia,serif' font-weight='bold'%3E100%3C/text%3E%3Ctext x='290' y='158' font-size='22' fill='rgba(180,160,80,0.22)' font-family='Georgia,serif' font-weight='bold'%3E100%3C/text%3E%3Ccircle cx='180' cy='90' r='44' fill='none' stroke='rgba(180,160,80,0.1)' stroke-width='1'/%3E%3Ccircle cx='180' cy='90' r='50' fill='none' stroke='rgba(180,160,80,0.07)' stroke-width='1'/%3E%3Cline x1='14' y1='90' x2='120' y2='90' stroke='rgba(180,160,80,0.1)' stroke-width='1'/%3E%3Cline x1='240' y1='90' x2='346' y2='90' stroke='rgba(180,160,80,0.1)' stroke-width='1'/%3E%3Ctext x='180' y='175' font-size='7' text-anchor='middle' fill='rgba(180,160,80,0.2)' font-family='monospace' letter-spacing='3'%3ETHE BANK OF YOUR BUSINESS%3C/text%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Ccircle cx='60' cy='60' r='55' fill='none' stroke='rgba(0,60,0,0.08)' stroke-width='1'/%3E%3Ccircle cx='60' cy='60' r='45' fill='none' stroke='rgba(0,60,0,0.06)' stroke-width='1'/%3E%3Ctext x='60' y='67' font-size='38' text-anchor='middle' fill='rgba(0,50,0,0.09)' font-family='serif' font-weight='bold'%3E%E2%82%AC%3C/text%3E%3C/svg%3E");
+      background-size: 360px 180px, 120px 120px;
+      background-position: center center, 0 0;
+      z-index: -2;
+    }
+
+    /* Vignette for depth */
+    .bg-vignette {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 40%, rgba(0,20,0,0.55) 100%);
       z-index: -1;
+      pointer-events: none;
     }
 
     /* Header */
@@ -470,6 +500,7 @@
 </head>
 <body>
 
+<div class="bg-vignette"></div>
 <div class="header">
   <div class="header-seal">★ Personal Sales Tracker ★</div>
   <h1>MY SALES LEDGER</h1>
