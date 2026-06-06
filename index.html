@@ -615,12 +615,17 @@
 
     <div class="form-group">
       <label>Quantity</label>
-      <input type="number" id="sale-qty" placeholder="e.g. 5" min="1" />
+      <input type="number" id="sale-qty" placeholder="e.g. 5" min="1" oninput="calcTotal()" />
     </div>
 
     <div class="form-group">
-      <label>Profit Made (€)</label>
-      <input type="number" id="sale-profit" placeholder="e.g. 120.00" min="0" step="0.01" />
+      <label>Profit Per Piece (€)</label>
+      <input type="number" id="sale-profit-per-piece" placeholder="e.g. 24.00" min="0" step="0.01" oninput="calcTotal()" />
+    </div>
+
+    <div class="form-group">
+      <label>Total Profit (€)</label>
+      <input type="number" id="sale-profit" placeholder="Auto-calculated" min="0" step="0.01" style="background:rgba(200,168,75,0.15); font-weight:700;" readonly />
     </div>
 
     <div class="form-group">
@@ -703,20 +708,30 @@
     showToast('Client added!');
   }
 
+  // ── Calc Total ────────────────────────────────────────
+  function calcTotal() {
+    const qty = parseFloat(document.getElementById('sale-qty').value) || 0;
+    const ppp = parseFloat(document.getElementById('sale-profit-per-piece').value) || 0;
+    const total = qty * ppp;
+    document.getElementById('sale-profit').value = total > 0 ? total.toFixed(2) : '';
+  }
+
   // ── Add Sale ──────────────────────────────────────────
   function addSale() {
     const clientId = document.getElementById('sale-client').value;
     const date     = document.getElementById('sale-date').value;
     const desc     = document.getElementById('sale-desc').value.trim();
     const qty      = document.getElementById('sale-qty').value;
+    const ppp      = document.getElementById('sale-profit-per-piece').value;
     const profit   = document.getElementById('sale-profit').value;
-    if (!clientId || !date || !desc || !profit) { alert('Please fill in all required fields.'); return; }
-    sales.push({ id: Date.now().toString(), clientId, date, desc, qty: qty || 1, profit: parseFloat(profit), notes: document.getElementById('sale-notes').value.trim() });
+    if (!clientId || !date || !desc || !ppp || !qty) { alert('Please fill in all required fields.'); return; }
+    sales.push({ id: Date.now().toString(), clientId, date, desc, qty: qty || 1, profitPerPiece: parseFloat(ppp), profit: parseFloat(profit), notes: document.getElementById('sale-notes').value.trim() });
     save();
     document.getElementById('sale-client').value = '';
     document.getElementById('sale-date').value = '';
     document.getElementById('sale-desc').value = '';
     document.getElementById('sale-qty').value = '';
+    document.getElementById('sale-profit-per-piece').value = '';
     document.getElementById('sale-profit').value = '';
     document.getElementById('sale-notes').value = '';
     showToast('Sale recorded!');
@@ -803,6 +818,7 @@
       <div class="sale-meta">
         <span>📅 ${s.date}</span>
         <span>📦 Qty: ${s.qty}</span>
+        ${s.profitPerPiece ? `<span>💶 €${parseFloat(s.profitPerPiece).toFixed(2)}/pc</span>` : ''}
         ${s.notes ? `<span>📝 ${s.notes}</span>` : ''}
       </div>
       ${showDelete ? `<div style="text-align:right;margin-top:8px"><button class="btn btn-sm btn-danger" onclick="deleteSale('${s.id}')">Delete</button></div>` : ''}
