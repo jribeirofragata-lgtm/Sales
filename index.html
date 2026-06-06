@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="My Sales" />
+  <title>My Sales Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --green-dark: #1a3a1a;
+      --green-mid: #2d5a27;
+      --green-light: #4a7c3f;
+      --green-pale: #a8c89a;
+      --gold: #c8a84b;
+      --gold-light: #e8c86a;
+      --cream: #f5f0e0;
+      --ink: #1a2a1a;
+      --white-trans: rgba(245,240,224,0.92);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Courier Prime', monospace;
+      background-color: var(--green-dark);
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: var(--ink);
+    }
+
+    /* Dollar bill background pattern */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 34px, rgba(0,80,0,0.15) 34px, rgba(0,80,0,0.15) 35px),
+        repeating-linear-gradient(90deg, transparent, transparent 34px, rgba(0,80,0,0.15) 34px, rgba(0,80,0,0.15) 35px),
+        radial-gradient(ellipse at 20% 50%, rgba(60,110,40,0.4) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 50%, rgba(60,110,40,0.4) 0%, transparent 60%),
+        linear-gradient(180deg, #1a3a1a 0%, #2d5a27 40%, #1a3a1a 100%);
+      z-index: -2;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='100' y='110' font-size='130' text-anchor='middle' fill='rgba(0,60,0,0.07)' font-family='serif' font-weight='bold'%3E%24%3C/text%3E%3C/svg%3E");
+      background-size: 200px 200px;
+      z-index: -1;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
+      border-bottom: 3px solid var(--gold);
+      padding: 16px 20px 12px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    .header-seal {
+      font-size: 10px;
+      color: var(--gold);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      opacity: 0.8;
+    }
+
+    .header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--gold-light);
+      letter-spacing: 2px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      margin: 2px 0;
+    }
+
+    .header-sub {
+      font-size: 10px;
+      color: var(--green-pale);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    /* Nav tabs */
+    .nav {
+      display: flex;
+      background: var(--green-dark);
+      border-bottom: 2px solid var(--gold);
+    }
+
+    .nav-btn {
+      flex: 1;
+      padding: 10px 4px;
+      background: transparent;
+      border: none;
+      color: var(--green-pale);
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-bottom: 3px solid transparent;
+    }
+
+    .nav-btn.active {
+      color: var(--gold-light);
+      border-bottom: 3px solid var(--gold);
+      background: rgba(200,168,75,0.08);
+    }
+
+    /* Pages */
+    .page { display: none; padding: 16px; }
+    .page.active { display: block; }
+
+    /* Cards */
+    .card {
+      background: var(--white-trans);
+      border: 1px solid var(--gold);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.5);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .stat-box {
+      background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
+      border: 1px solid var(--gold);
+      border-radius: 8px;
+      padding: 14px 10px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    .stat-label {
+      font-size: 9px;
+      color: var(--green-pale);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--gold-light);
+      text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    .stat-value.big { font-size: 18px; }
+
+    /* Form */
+    .form-group { margin-bottom: 12px; }
+
+    label {
+      display: block;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--green-mid);
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.9);
+      border: 1px solid var(--gold);
+      border-radius: 6px;
+      font-family: 'Courier Prime', monospace;
+      font-size: 14px;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--green-mid);
+      box-shadow: 0 0 0 3px rgba(45,90,39,0.15);
+    }
+
+    textarea { resize: vertical; min-height: 70px; }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, var(--green-mid), var(--green-light));
+      border: 1px solid var(--gold);
+      border-radius: 6px;
+      color: var(--gold-light);
+      font-family: 'Playfair Display', serif;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .btn:active { transform: scale(0.98); }
+
+    .btn-sm {
+      width: auto;
+      padding: 6px 14px;
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #5a1a1a, #8a2a2a);
+      border-color: #c84b4b;
+      color: #f5c0c0;
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, #8a6a1a, var(--gold));
+      color: var(--green-dark);
+    }
+
+    /* Client list */
+    .client-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--white-trans);
+      border: 1px solid var(--gold);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    }
+
+    .client-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--green-dark);
+    }
+
+    .client-total {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--green-mid);
+    }
+
+    .client-count {
+      font-size: 10px;
+      color: #666;
+      letter-spacing: 1px;
+    }
+
+    /* Sale item */
+    .sale-item {
+      background: var(--white-trans);
+      border: 1px solid rgba(200,168,75,0.5);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    }
+
+    .sale-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 6px;
+    }
+
+    .sale-client {
+      font-family: 'Playfair Display', serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--green-dark);
+    }
+
+    .sale-profit {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--green-mid);
+    }
+
+    .sale-desc {
+      font-size: 13px;
+      color: #444;
+      margin-bottom: 4px;
+    }
+
+    .sale-meta {
+      font-size: 11px;
+      color: #777;
+      display: flex;
+      gap: 12px;
+    }
+
+    /* Filter bar */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      align-items: center;
+    }
+
+    .filter-bar select { flex: 1; }
+
+    /* Section title */
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(200,168,75,0.3);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 30px 20px;
+      color: var(--green-pale);
+      font-size: 13px;
+      letter-spacing: 1px;
+    }
+
+    .empty-icon { font-size: 36px; margin-bottom: 8px; }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 200;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--cream);
+      border-top: 3px solid var(--gold);
+      border-radius: 16px 16px 0 0;
+      padding: 20px 20px 36px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .modal-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--green-dark);
+      margin-bottom: 16px;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 14px; right: 16px;
+      background: none;
+      border: none;
+      font-size: 22px;
+      color: var(--green-mid);
+      cursor: pointer;
+    }
+
+    .tag {
+      display: inline-block;
+      background: var(--green-pale);
+      color: var(--green-dark);
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+      margin-right: 4px;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px dashed rgba(200,168,75,0.4);
+      margin: 14px 0;
+    }
+
+    /* FAB */
+    .fab {
+      position: fixed;
+      bottom: 24px;
+      right: 20px;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      border: none;
+      color: var(--green-dark);
+      font-size: 28px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s;
+    }
+
+    .fab:active { transform: scale(0.92); }
+
+    .success-toast {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--green-mid);
+      color: var(--gold-light);
+      padding: 10px 24px;
+      border-radius: 30px;
+      font-size: 13px;
+      letter-spacing: 1px;
+      border: 1px solid var(--gold);
+      z-index: 300;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    .success-toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-seal">★ Personal Sales Tracker ★</div>
+  <h1>MY SALES LEDGER</h1>
+  <div class="header-sub">Est. 2025 — Confidential</div>
+</div>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="showPage('dashboard')">Dashboard</button>
+  <button class="nav-btn" onclick="showPage('sales')">Sales</button>
+  <button class="nav-btn" onclick="showPage('clients')">Clients</button>
+  <button class="nav-btn" onclick="showPage('add-sale')">+ Sale</button>
+</nav>
+
+<!-- DASHBOARD -->
+<div id="page-dashboard" class="page active">
+  <div class="stats-grid">
+    <div class="stat-box">
+      <div class="stat-label">Total Profit</div>
+      <div class="stat-value big" id="stat-total">€0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Total Sales</div>
+      <div class="stat-value" id="stat-count">0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Clients</div>
+      <div class="stat-value" id="stat-clients">0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Avg / Sale</div>
+      <div class="stat-value big" id="stat-avg">€0</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Top Clients</div>
+    <div id="top-clients-list"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Recent Sales</div>
+    <div id="recent-sales-list"></div>
+  </div>
+</div>
+
+<!-- SALES HISTORY -->
+<div id="page-sales" class="page">
+  <div class="filter-bar">
+    <select id="filter-client" onchange="renderSalesPage()">
+      <option value="">All Clients</option>
+    </select>
+  </div>
+
+  <div class="card" id="sales-summary-card" style="display:none;">
+    <div class="stats-grid" style="margin-bottom:0">
+      <div class="stat-box">
+        <div class="stat-label">Filtered Profit</div>
+        <div class="stat-value big" id="filter-total">€0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Filtered Sales</div>
+        <div class="stat-value" id="filter-count">0</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sales-list"></div>
+</div>
+
+<!-- CLIENTS -->
+<div id="page-clients" class="page">
+  <div class="section-title">All Clients</div>
+  <div id="clients-list"></div>
+
+  <hr class="divider" />
+
+  <div class="card">
+    <div class="section-title">Add New Client</div>
+    <div class="form-group">
+      <label>Client Name</label>
+      <input type="text" id="new-client-name" placeholder="e.g. Maria Garcia" />
+    </div>
+    <div class="form-group">
+      <label>Phone (optional)</label>
+      <input type="tel" id="new-client-phone" placeholder="+1 234 567 890" />
+    </div>
+    <button class="btn" onclick="addClient()">Add Client</button>
+  </div>
+</div>
+
+<!-- ADD SALE -->
+<div id="page-add-sale" class="page">
+  <div class="card">
+    <div class="section-title">Record a Sale</div>
+
+    <div class="form-group">
+      <label>Client</label>
+      <select id="sale-client">
+        <option value="">Select a client...</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Date</label>
+      <input type="date" id="sale-date" />
+    </div>
+
+    <div class="form-group">
+      <label>Product Description</label>
+      <textarea id="sale-desc" placeholder="e.g. 3x leather bags, 2x scarves..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Quantity</label>
+      <input type="number" id="sale-qty" placeholder="e.g. 5" min="1" />
+    </div>
+
+    <div class="form-group">
+      <label>Profit Made (€)</label>
+      <input type="number" id="sale-profit" placeholder="e.g. 120.00" min="0" step="0.01" />
+    </div>
+
+    <div class="form-group">
+      <label>Notes (optional)</label>
+      <input type="text" id="sale-notes" placeholder="Any extra notes..." />
+    </div>
+
+    <button class="btn" onclick="addSale()">Record Sale</button>
+  </div>
+</div>
+
+<div class="success-toast" id="toast">✓ Saved!</div>
+
+<script>
+  // ── Data ──────────────────────────────────────────────
+  let clients = JSON.parse(localStorage.getItem('clients') || '[]');
+  let sales   = JSON.parse(localStorage.getItem('sales')   || '[]');
+
+  function save() {
+    localStorage.setItem('clients', JSON.stringify(clients));
+    localStorage.setItem('sales',   JSON.stringify(sales));
+  }
+
+  // ── Navigation ────────────────────────────────────────
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    const idx = ['dashboard','sales','clients','add-sale'].indexOf(name);
+    document.querySelectorAll('.nav-btn')[idx].classList.add('active');
+    if (name === 'dashboard') renderDashboard();
+    if (name === 'sales')     renderSalesPage();
+    if (name === 'clients')   renderClientsPage();
+    if (name === 'add-sale')  populateClientSelects();
+  }
+
+  // ── Toast ─────────────────────────────────────────────
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = '✓ ' + msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  // ── Helpers ───────────────────────────────────────────
+  function fmt(n) { return '€' + parseFloat(n).toFixed(2); }
+
+  function clientName(id) {
+    const c = clients.find(c => c.id === id);
+    return c ? c.name : 'Unknown';
+  }
+
+  function populateClientSelects() {
+    ['sale-client', 'filter-client'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const prev = el.value;
+      el.innerHTML = id === 'filter-client'
+        ? '<option value="">All Clients</option>'
+        : '<option value="">Select a client...</option>';
+      clients.forEach(c => {
+        const o = document.createElement('option');
+        o.value = c.id; o.textContent = c.name;
+        el.appendChild(o);
+      });
+      if (prev) el.value = prev;
+    });
+  }
+
+  // ── Add Client ────────────────────────────────────────
+  function addClient() {
+    const name = document.getElementById('new-client-name').value.trim();
+    if (!name) { alert('Please enter a client name.'); return; }
+    clients.push({ id: Date.now().toString(), name, phone: document.getElementById('new-client-phone').value.trim() });
+    save();
+    document.getElementById('new-client-name').value = '';
+    document.getElementById('new-client-phone').value = '';
+    renderClientsPage();
+    populateClientSelects();
+    showToast('Client added!');
+  }
+
+  // ── Add Sale ──────────────────────────────────────────
+  function addSale() {
+    const clientId = document.getElementById('sale-client').value;
+    const date     = document.getElementById('sale-date').value;
+    const desc     = document.getElementById('sale-desc').value.trim();
+    const qty      = document.getElementById('sale-qty').value;
+    const profit   = document.getElementById('sale-profit').value;
+    if (!clientId || !date || !desc || !profit) { alert('Please fill in all required fields.'); return; }
+    sales.push({ id: Date.now().toString(), clientId, date, desc, qty: qty || 1, profit: parseFloat(profit), notes: document.getElementById('sale-notes').value.trim() });
+    save();
+    document.getElementById('sale-client').value = '';
+    document.getElementById('sale-date').value = '';
+    document.getElementById('sale-desc').value = '';
+    document.getElementById('sale-qty').value = '';
+    document.getElementById('sale-profit').value = '';
+    document.getElementById('sale-notes').value = '';
+    showToast('Sale recorded!');
+    renderDashboard();
+  }
+
+  // ── Delete Sale ───────────────────────────────────────
+  function deleteSale(id) {
+    if (!confirm('Delete this sale?')) return;
+    sales = sales.filter(s => s.id !== id);
+    save(); renderSalesPage(); renderDashboard();
+  }
+
+  // ── Delete Client ─────────────────────────────────────
+  function deleteClient(id) {
+    const hasSales = sales.some(s => s.clientId === id);
+    if (hasSales && !confirm('This client has sales. Delete client and all their sales?')) return;
+    if (!hasSales && !confirm('Delete this client?')) return;
+    clients = clients.filter(c => c.id !== id);
+    sales   = sales.filter(s => s.clientId !== id);
+    save(); renderClientsPage(); populateClientSelects(); renderDashboard();
+  }
+
+  // ── Dashboard ─────────────────────────────────────────
+  function renderDashboard() {
+    const total = sales.reduce((a, s) => a + s.profit, 0);
+    const avg   = sales.length ? total / sales.length : 0;
+    document.getElementById('stat-total').textContent   = fmt(total);
+    document.getElementById('stat-count').textContent   = sales.length;
+    document.getElementById('stat-clients').textContent = clients.length;
+    document.getElementById('stat-avg').textContent     = fmt(avg);
+
+    // Top clients
+    const byClient = {};
+    sales.forEach(s => { byClient[s.clientId] = (byClient[s.clientId] || 0) + s.profit; });
+    const sorted = Object.entries(byClient).sort((a,b) => b[1]-a[1]).slice(0,5);
+    const tcl = document.getElementById('top-clients-list');
+    if (!sorted.length) { tcl.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div>No sales yet</div>'; }
+    else {
+      tcl.innerHTML = sorted.map(([id, profit]) =>
+        `<div class="client-item" style="margin-bottom:8px">
+          <span class="client-name">${clientName(id)}</span>
+          <span class="client-total">${fmt(profit)}</span>
+        </div>`).join('');
+    }
+
+    // Recent sales
+    const recent = [...sales].sort((a,b) => b.date.localeCompare(a.date)).slice(0,5);
+    const rsl = document.getElementById('recent-sales-list');
+    if (!recent.length) { rsl.innerHTML = '<div class="empty-state"><div class="empty-icon">💶</div>No sales recorded</div>'; }
+    else { rsl.innerHTML = recent.map(saleCard).join(''); }
+  }
+
+  // ── Sales Page ────────────────────────────────────────
+  function renderSalesPage() {
+    populateClientSelects();
+    const filterClient = document.getElementById('filter-client').value;
+    let filtered = [...sales].sort((a,b) => b.date.localeCompare(a.date));
+    if (filterClient) filtered = filtered.filter(s => s.clientId === filterClient);
+
+    const summaryCard = document.getElementById('sales-summary-card');
+    if (filterClient) {
+      summaryCard.style.display = 'block';
+      const tot = filtered.reduce((a,s) => a+s.profit, 0);
+      document.getElementById('filter-total').textContent = fmt(tot);
+      document.getElementById('filter-count').textContent = filtered.length;
+    } else { summaryCard.style.display = 'none'; }
+
+    const el = document.getElementById('sales-list');
+    if (!filtered.length) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">💶</div>No sales found</div>';
+    } else {
+      el.innerHTML = filtered.map(s => saleCard(s, true)).join('');
+    }
+  }
+
+  function saleCard(s, showDelete) {
+    return `<div class="sale-item">
+      <div class="sale-header">
+        <div class="sale-client">${clientName(s.clientId)}</div>
+        <div class="sale-profit">${fmt(s.profit)}</div>
+      </div>
+      <div class="sale-desc">${s.desc}</div>
+      <div class="sale-meta">
+        <span>📅 ${s.date}</span>
+        <span>📦 Qty: ${s.qty}</span>
+        ${s.notes ? `<span>📝 ${s.notes}</span>` : ''}
+      </div>
+      ${showDelete ? `<div style="text-align:right;margin-top:8px"><button class="btn btn-sm btn-danger" onclick="deleteSale('${s.id}')">Delete</button></div>` : ''}
+    </div>`;
+  }
+
+  // ── Clients Page ──────────────────────────────────────
+  function renderClientsPage() {
+    populateClientSelects();
+    const el = document.getElementById('clients-list');
+    if (!clients.length) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div>No clients yet</div>';
+      return;
+    }
+    const byClient = {};
+    sales.forEach(s => { byClient[s.clientId] = (byClient[s.clientId] || 0) + s.profit; });
+    el.innerHTML = clients.map(c => {
+      const total = byClient[c.id] || 0;
+      const count = sales.filter(s => s.clientId === c.id).length;
+      return `<div class="client-item">
+        <div>
+          <div class="client-name">${c.name}</div>
+          <div class="client-count">${count} sale${count!==1?'s':''} · ${c.phone || 'No phone'}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="client-total">${fmt(total)}</div>
+          <button class="btn btn-sm btn-danger" style="margin-top:4px" onclick="deleteClient('${c.id}')">✕</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── Init ──────────────────────────────────────────────
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('sale-date').value = today;
+  populateClientSelects();
+  renderDashboard();
+</script>
+</body>
+</html>
